@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface BirthdayWishesProps {
@@ -18,25 +18,7 @@ const birthdayMessages = [
 ]
 
 export default function BirthdayWishes({ name, isBirthday, birthday }: BirthdayWishesProps) {
-  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft())
-  const [randomBirthdayMessage, setRandomBirthdayMessage] = useState<string>("")
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(calculateTimeLeft())
-    }, 1000)
-
-    return () => clearInterval(timer)
-  }, [])
-
-  useEffect(() => {
-    if (isBirthday) {
-      const message = birthdayMessages[Math.floor(Math.random() * birthdayMessages.length)]
-      setRandomBirthdayMessage(message)
-    }
-  }, [isBirthday])
-
-  function calculateTimeLeft() {
+  const calculateTimeLeft = useCallback(() => {
     const now = new Date()
     const nextBirthday = new Date(birthday)
     nextBirthday.setFullYear(now.getFullYear())
@@ -51,7 +33,25 @@ export default function BirthdayWishes({ name, isBirthday, birthday }: BirthdayW
       minutes: Math.floor((difference / 1000 / 60) % 60),
       seconds: Math.floor((difference / 1000) % 60)
     }
-  }
+  }, [birthday])
+
+  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft())
+  const [randomBirthdayMessage, setRandomBirthdayMessage] = useState<string>("")
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft())
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [calculateTimeLeft])
+
+  useEffect(() => {
+    if (isBirthday) {
+      const message = birthdayMessages[Math.floor(Math.random() * birthdayMessages.length)]
+      setRandomBirthdayMessage(message)
+    }
+  }, [isBirthday])
 
   return (
     <motion.div
